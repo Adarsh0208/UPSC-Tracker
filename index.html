@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1f3a5f"><title>UPSC 2027 Tracker</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1f3a5f"><title>UPSC 2027 Tracker</title>
 <style>
 :root{--bg:#f3f5f8;--c:#fff;--t:#17202e;--m:#667085;--a:#1f6f8b;--b:#dde3ea;--ok:#2f855a;--w:#c05621;--r:6px}
 .dk{--bg:#10151d;--c:#18202b;--t:#e6ebf2;--m:#93a0b4;--a:#5bb4d1;--b:#2a3544}
@@ -15,7 +15,8 @@ table{width:100%;border-collapse:collapse;background:var(--c)}td,th{padding:6px 
 .hm{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,12px);gap:3px}.hm i{width:12px;height:12px;border-radius:2px;background:var(--b)}
 details{background:var(--c);border:1px solid var(--b);border-radius:var(--r);margin:6px 0;padding:6px 10px}summary{cursor:pointer;font-weight:600}details details{border:0;border-left:2px solid var(--b);border-radius:0}
 .tp{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0;border-bottom:1px dashed var(--b)}.tp span{flex:1 1 220px}
-@media(max-width:700px){body{flex-direction:column-reverse}nav{width:100%;height:auto;position:fixed;bottom:0;display:flex;border:0;border-top:1px solid var(--b);padding:2px;z-index:9;overflow-x:auto}nav b{display:none}nav a{padding:8px 9px;font-size:12px;white-space:nowrap}main{padding:12px 12px 70px}}
+html{-webkit-text-size-adjust:100%}body{overflow-x:hidden}main{min-width:0}select,input,textarea{max-width:100%;min-width:0}
+@media(max-width:700px){body{display:block}nav{position:fixed;left:0;right:0;bottom:0;width:100%;height:auto;display:grid;grid-template-columns:repeat(7,1fr);padding:4px 2px calc(4px + env(safe-area-inset-bottom));border:0;border-top:1px solid var(--b);z-index:9}nav b{display:none}nav a{padding:9px 0;text-align:center;font-size:11px}main{padding:12px 12px calc(78px + env(safe-area-inset-bottom));max-width:100%}h2{font-size:18px}.tm{font-size:42px}.g{grid-template-columns:repeat(2,1fr)}table{display:block;overflow-x:auto}.row>input:not([type=checkbox]),.row>select{flex:1 1 100%}.row>input[type=number]{flex:1 1 40%}.row>button{flex:1 1 auto}.tp span{flex-basis:100%}.tp select,.tp input{flex:1 1 40%}}
 </style></head><body><nav id="n"></nav><main id="m">Loading…</main>
 <script>
 const $=s=>document.querySelector(s),Q=(a,f)=>a.map(f).join('');
@@ -60,7 +61,7 @@ const c=[pct(()=>1),den?100*rs.done/den:0,mockPct('P'),mockPct('M'),100*met/30],
 const NM=['Syllabus completion','Revision progress','Prelims mocks','Mains answer-writing','Study consistency'];
 function bar(v){return'<div class="p"><i style="width:'+Math.min(100,v)+'%"></i></div>'}
 function card(l,v){return'<div class="k"><small>'+l+'</small><div>'+v+'</div></div>'}
-function nav(){const v=[['dash','Dashboard'],['timer','Timer'],['syll','Syllabus'],['rev','Revision'],['back','Backlog'],['mock','Mocks'],['set','Settings']];$('#n').innerHTML='<b>UPSC 2027</b>'+Q(v,x=>'<a class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</a>')}
+function nav(){const v=[['dash','Home'],['timer','Timer'],['syll','Syllabus'],['rev','Revise'],['back','Backlog'],['mock','Mocks'],['set','Settings']];$('#n').innerHTML='<b>UPSC 2027</b>'+Q(v,x=>'<a class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</a>')}
 function go(v){view=v;R()}
 function R(){document.body.classList.toggle('dk',!!S.dark);nav();$('#m').innerHTML=V[view]();if(view=='timer')tick()}
 const QT=["Discipline is choosing what you want most over what you want now.","Small daily improvements are the key to staggering long-term results.","Consistency beats intensity.","The expert was once a beginner who refused to quit."];
