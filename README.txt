@@ -12,3 +12,6 @@ Upload ALL files in this folder to GitHub, as before.
 
 v8 (Phase 3): Syllabus tracker: per-paper progress, priority, estimated hours, topic detail page, filters, custom topics (add/edit/delete).
 Upload ALL files in this folder to GitHub, as before.
+
+v9 (Phase 4): Revision manager: tabs, monthly calendar, postpone/reschedule/difficult, configurable intervals (Settings > Revision schedule).
+Upload ALL files in this folder to GitHub, as before.
