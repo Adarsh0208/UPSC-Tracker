@@ -9,3 +9,6 @@ Your existing data is migrated automatically on first open; the old record is ke
 
 v7 (Phase 2): new Study Timer (stopwatch, countdown, Pomodoro with long breaks), topic picker, per-subject time analytics.
 Upload ALL files in this folder to GitHub, as before.
+
+v8 (Phase 3): Syllabus tracker: per-paper progress, priority, estimated hours, topic detail page, filters, custom topics (add/edit/delete).
+Upload ALL files in this folder to GitHub, as before.
