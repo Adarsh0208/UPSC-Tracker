@@ -20,3 +20,15 @@ html{-webkit-text-size-adjust:100%}body{overflow-x:hidden}main{min-width:0}selec
 .sg{background:var(--c);border:1px solid var(--b);border-radius:var(--r);padding:14px;margin:12px 0}.sg h3{margin:0 0 2px}.sg small{color:var(--m);display:block;margin-bottom:8px}
 .fld{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--b)}.fld input,.fld select{width:140px;flex:none}.fld input[type=checkbox]{width:20px;height:20px}
 button:disabled{opacity:.45;cursor:not-allowed}.dk button:not(.s):not(.d),.dk nav a.on{color:#0b1220}
+
+.tc{background:var(--c);border:1px solid var(--b);border-radius:var(--r);padding:16px;text-align:center}
+.ringw{position:relative;width:min(300px,78vw);margin:4px auto 12px}.ring{width:100%;display:block}.rt{fill:none;stroke:var(--b);stroke-width:10}
+.rp{fill:none;stroke:var(--a);stroke-width:10;stroke-linecap:round;stroke-dasharray:603.2;stroke-dashoffset:603.2;transition:stroke-dashoffset .6s linear,stroke .3s}.brk .rp{stroke:var(--ok)}
+.rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.rc .tm{font-size:46px;font-weight:300;line-height:1.1}.tlb{color:var(--m);font-size:13px;padding:0 24px}
+.tt{font-size:20px;font-weight:650;margin-top:4px}.ts{color:var(--m);font-size:13px;margin-top:2px}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:3px;margin:6px 0}.seg button{flex:1;background:none;color:var(--t)}.seg button.on{background:var(--a);color:#fff}.dk .seg button.on{color:#0b1220}
+.fv{display:block;margin:8px 0;text-align:left}.fv span{display:block;color:var(--m);font-size:12px;margin-bottom:2px}.fv select,.fv input,.fv textarea{width:100%}.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.sc{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--c);border:1px solid var(--b);border-radius:var(--r);padding:10px 12px;margin:6px 0}.sd{text-align:right;white-space:nowrap}
+.ar{display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;gap:8px;align-items:center;margin:4px 0}.ar small{color:var(--m);white-space:nowrap}
+@media(max-width:700px){.ar{grid-template-columns:1fr auto}.ar .p{grid-column:1/3;order:3}.sc{flex-direction:column;align-items:stretch}.sd{text-align:left}}
+.dk .seg button:not(.on){color:var(--t)}

@@ -6,3 +6,6 @@ Prelims date defaults to 24 May 2027; verify on upsc.gov.in and change in Settin
 
 v5 (Phase 0 foundation): files are now index.html + app.css + app.js (+ sw.js, manifest.json, icons). Upload ALL of them to GitHub.
 Your existing data is migrated automatically on first open; the old record is kept untouched in the browser as a safety copy.
+
+v7 (Phase 2): new Study Timer (stopwatch, countdown, Pomodoro with long breaks), topic picker, per-subject time analytics.
+Upload ALL files in this folder to GitHub, as before.

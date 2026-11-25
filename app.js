@@ -21,7 +21,7 @@ const SY={
 const ST=['Not Started','In Progress','Completed'],MAP={'Currently Studying':'In Progress','Revision Required':'Completed','Fully Revised':'Completed'},IV=[1,3,7,15,30],DONE=s=>s=='Completed';
 const ymd=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')},today=()=>ymd(Date.now()),add=(s,n)=>{const d=new Date(s+'T00:00');d.setDate(d.getDate()+n);return ymd(d)},diff=(a,b)=>Math.round((new Date(a+'T00:00')-new Date(b+'T00:00'))/864e5);
 let S,view='dash',db,ALL=[];
-const DEF=()=>({sessions:[],topics:{},revs:[],mocks:[],custom:[],hist:{},timer:null,dark:0,set:{daily:8,min:2,weekly:40,exam:'2027-05-24',mains:'',cd:'prelims',w:[30,20,20,15,15],pw:25,pb:5,lb:15,cyc:4,autob:1,accent:'teal',fs:'md',share:{weekly:0,consistency:0,syllabus:0,revision:0}}});
+const DEF=()=>({sessions:[],topics:{},revs:[],mocks:[],custom:[],hist:{},timer:null,tsel:{},dark:0,set:{daily:8,min:2,weekly:40,exam:'2027-05-24',mains:'',cd:'prelims',w:[30,20,20,15,15],pw:25,pb:5,lb:15,cyc:4,autob:1,accent:'teal',fs:'md',share:{weekly:0,consistency:0,syllabus:0,revision:0}}});
 function buildAll(){ALL=[];for(const p in SY)for(const u in SY[p]){(SY[p][u]?SY[p][u].split(';'):[]).forEach((n,i)=>ALL.push({id:p+'|'+u+'|'+i,p,u,n}));S.custom.filter(c=>c.p==p&&c.u==u).forEach(c=>ALL.push(c))}}
 const T=id=>S.topics[id]||(S.topics[id]={st:ST[0],notes:'',ref:'',hrs:0,target:'',done:'',rev:0});
 const hrs=ms=>ms/36e5,fh=h=>h.toFixed(1)+'h';
@@ -40,7 +40,7 @@ function bar(v){return'<div class="p"><i style="width:'+Math.min(100,v)+'%"></i>
 function card(l,v){return'<div class="k"><small>'+l+'</small><div>'+v+'</div></div>'}
 function nav(){const v=[['dash','Home'],['timer','Timer'],['syll','Syllabus'],['rev','Revise'],['back','Backlog'],['mock','Mocks'],['set','Settings']];$('#n').innerHTML='<b>UPSC 2027</b>'+Q(v,x=>'<a class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</a>')}
 function go(v){view=v;R()}
-function R(){theme();nav();$('#m').innerHTML=pbar()+V[view]();if(view=='timer')tick()}
+function R(){theme();nav();$('#m').innerHTML=pbar()+V[view]();if(view=='timer')paint();if(!S.timer)document.title='UPSC 2027 Tracker'}
 const QT=["Discipline is choosing what you want most over what you want now.","Small daily improvements are the key to staggering long-term results.","Consistency beats intensity.","The expert was once a beginner who refused to quit."];
 const V={
 dash(){const s=streaks(),r=ready(),rs=revStats(),t=today(),tg=S.set.daily,dn=dayH(t),ex=diff(S.set.exam,t),all=ALL.length,dd=ALL.filter(x=>DONE(T(x.id).st)).length,ip=ALL.filter(x=>T(x.id).st==ST[1]).length;if(S.hist[t]!==+r.score.toFixed(1)){S.hist[t]=+r.score.toFixed(1);save()}
@@ -50,11 +50,31 @@ return'<h2>Dashboard</h2><p style="color:var(--m)">'+QT[new Date().getDate()%QT.
 '<h3>Syllabus</h3><div class="g">'+card('Overall',(all?100*dd/all:0).toFixed(1)+'%')+card('Prelims',pct(x=>x.p[0]=='P').toFixed(1)+'%')+card('Mains',pct(x=>x.p[0]=='M').toFixed(1)+'%')+card('Completed / in progress',dd+' / '+ip)+'</div>'+
 '<h3>Last 14 days (hours)</h3><div class="bars">'+Q(days,h=>'<i title="'+fh(h)+'" style="height:'+100*h/mx+'%"></i>')+'</div><h3>Activity (15 weeks)</h3><div class="hm">'+hm+'</div>'+
 '<h3>Revisions</h3><p>Due today: '+rs.due.length+' · Overdue: '+rs.over.length+' · Upcoming: '+rs.up.length+'</p>'+Q(rs.over.concat(rs.due).concat(rs.up).slice(0,5),x=>'<div>'+x.due+' — '+esc(x.name)+' (R'+x.n+')</div>')},
-timer(){const m=S.timer,L=Q(S.sessions.slice().reverse().slice(0,40),x=>'<tr><td>'+x.date+'</td><td>'+esc(x.name||'General study')+(x.manual?' (manual)':'')+'</td><td>'+fh(hrs(x.study))+' (+'+Math.round(x.brk/6e4)+'m break)</td><td>'+esc(x.desc)+'</td><td><button class="s" onclick="eds('+x.id+')">Edit</button> <button class="d" onclick="dls('+x.id+')">Delete</button></td></tr>');
-let cur='';let lastP='';ALL.forEach(x=>{if(x.p!=lastP){cur+=(lastP?'</optgroup>':'')+'<optgroup label="'+x.p+'">';lastP=x.p}cur+='<option value="'+x.id+'">'+x.u+' › '+esc(x.n)+'</option>'});cur+='</optgroup>';
-return'<h2>Study timer</h2><div class="k"><div class="tm" id="tv">00:00:00</div><div id="ph" style="color:var(--m)"></div><div class="row">'+
-(m?'':'<select id="tt">'+cur+'</select><select id="tmo"><option value="0">Stopwatch</option><option value="25">Pomodoro 25/5</option><option value="50">Pomodoro 50/10</option><option value="c">Custom Pomodoro</option></select><input id="td" placeholder="Session description" style="flex:1">')+'</div><div class="row">'+
-(!m?'<button onclick="ts()">Start</button>':(m.run?'<button onclick="tp()">Pause</button>':'<button onclick="tr()">Resume</button>')+'<button class="d" onclick="tx()">Stop &amp; save</button><button class="s" onclick="tz()">Reset</button>')+'</div></div><h3>Add a past session</h3><div class="k"><div class="row"><input id="md" type="date" value="'+today()+'" max="'+today()+'"><input id="mh" type="number" min="0" max="24" placeholder="Hours" style="width:90px"><input id="mi" type="number" min="0" max="59" placeholder="Minutes" style="width:90px"><select id="mt"><option value="">No specific topic</option>'+cur+'</select></div><div class="row"><input id="mdesc" placeholder="Description (optional)" style="flex:1"><button onclick="addman()">Add session</button></div></div><h3>Session history</h3><table><tr><th>Date<th>Topic<th>Study<th>Note<th></tr>'+L+'</table>'},
+timer(){const q=tsFix(),t=S.timer,
+ring='<div class="ringw"><svg viewBox="0 0 220 220" class="ring" role="img" aria-label="Timer progress"><circle cx="110" cy="110" r="96" class="rt"/><circle id="rg" cx="110" cy="110" r="96" class="rp" transform="rotate(-90 110 110)"/></svg><div class="rc"><div id="tv" class="tm">'+(t?'':idleT(q))+'</div><div id="tl" class="tlb"></div></div></div>',
+fv=(l,x)=>'<label class="fv"><span>'+l+'</span>'+x+'</label>',
+ni=(k,l,mn,mx)=>fv(l,'<input type="number" min="'+mn+'" max="'+mx+'" step="1" value="'+(k=='cd'?(q.cd||60):pv(k))+'" onchange="tset(\''+k+'\',this.value)">'),
+op=(a,v)=>a.map(([x,y])=>'<option value="'+esc(x)+'"'+(x==v?' selected':'')+'>'+esc(y)+'</option>').join(''),
+sl=(l,k,a,v,dis)=>fv(l,'<select'+(dis?' disabled':'')+' onchange="tpick(\''+k+'\',this.value)">'+op(a,v)+'</select>');
+let card;
+if(!t){const papers=Object.keys(SY).filter(p=>!q.cat||p.startsWith(q.cat)),units=q.paper?Object.keys(SY[q.paper]):[],tops=q.unit?ALL.filter(x=>x.p==q.paper&&x.u==q.unit):[];
+card='<div class="tc">'+ring+'<div class="seg">'+Q(Object.keys(MODES),m=>'<button class="'+(q.mode==m?'on':'')+'" onclick="tmode(\''+m+'\')">'+MODES[m]+'</button>')+'</div>'+
+(q.mode=='cd'?ni('cd','Duration (minutes)',1,600):q.mode=='pomo'?'<div class="row"><button class="s" onclick="tpre(25,5)">25 / 5</button><button class="s" onclick="tpre(50,10)">50 / 10</button></div><div class="g2">'+ni('w','Focus (min)',1,180)+ni('sb','Short break (min)',1,60)+ni('lb','Long break (min)',1,90)+ni('cyc','Sessions before long break',1,10)+'</div>':'')+
+sl('Exam category','cat',[['','Any'],['Prelims','Prelims'],['Mains','Mains']],q.cat)+sl('Paper','paper',[['','No specific paper']].concat(papers.map(p=>[p,p])),q.paper)+sl('Subject','unit',[['','No specific subject']].concat(units.map(u=>[u,u])),q.unit,!q.paper)+sl('Topic','tid',[['','Whole subject / general']].concat(tops.map(x=>[x.id,x.n])),q.tid,!q.unit)+
+fv('Session description (optional)','<textarea id="td" rows="2" maxlength="300" onchange="S.tsel.desc=this.value;save()">'+esc(q.desc||'')+'</textarea>')+'<button style="width:100%;margin-top:10px" onclick="ts()">Start</button></div>'}
+else{const a=ALL.find(x=>x.id==t.id),ttl=a?a.n:(t.unit||'General study'),sub=[a?a.p:t.paper,a?a.u:t.unit].filter(Boolean).join(' › ')||'No subject selected';
+card='<div class="tc">'+ring+'<div class="tt">'+esc(ttl)+'</div><div class="ts">'+esc(sub)+' · '+MODES[t.mode]+'</div>'+(t.desc?'<div class="ts"><i>'+esc(t.desc)+'</i></div>':'')+'<div id="ti" class="ts"></div><div class="row" style="justify-content:center;margin-top:12px">'+(t.wait?'<button onclick="tr()">Start '+(t.ph=='break'?'break':'focus')+'</button>':t.run?'<button onclick="tp()">Pause</button>':'<button onclick="tr()">Resume</button>')+'<button class="d" onclick="tx()">Finish &amp; save</button><button class="s" onclick="tz()">Discard</button></div></div>'}
+const td=today(),tl=S.sessions.filter(x=>x.date==td).sort((a,b)=>b.id-a.id),tt=tl.reduce((a,x)=>a+x.study,0),
+ra=S.sessions.filter(x=>TR=='all'||x.date>=add(td,-(+TR-1))),m={};ra.forEach(x=>{const u=x.unit||(ALL.find(a=>a.id==x.tid)||{}).u||'General study';m[u]=(m[u]||0)+x.study});
+const rows=Object.entries(m).sort((a,b)=>b[1]-a[1]),sum=rows.reduce((a,r)=>a+r[1],0),mx=rows.length?rows[0][1]:1;
+let opt='',lp='';ALL.forEach(x=>{if(x.p!=lp){opt+=(lp?'</optgroup>':'')+'<optgroup label="'+esc(x.p)+'">';lp=x.p}opt+='<option value="'+esc(x.id)+'">'+esc(x.u)+' › '+esc(x.n)+'</option>'});opt+='</optgroup>';
+const hist=S.sessions.slice().sort((a,b)=>b.id-a.id).slice(0,100);
+return'<h2>Study timer</h2>'+card+
+'<h3>Today: '+fd(tt)+' of '+S.set.daily+'h target</h3>'+(tl.length?Q(tl,sesCard):'<p style="color:var(--m)">No sessions recorded today yet.</p>')+
+'<h3>Time by subject</h3><div class="seg" style="margin-bottom:8px">'+Q([['1','Today'],['7','7 days'],['30','30 days'],['all','All']],r=>'<button class="'+(TR==r[0]?'on':'')+'" onclick="setTR(\''+r[0]+'\')">'+r[1]+'</button>')+'</div>'+
+(rows.length?Q(rows,r=>'<div class="ar"><span>'+esc(r[0])+'</span><div class="p"><i style="width:'+(100*r[1]/mx)+'%"></i></div><small>'+fd(r[1])+' · '+(100*r[1]/sum).toFixed(0)+'%</small></div>'):'<p style="color:var(--m)">No study time recorded in this period.</p>')+
+'<details><summary>Add a past session</summary><div class="row"><input id="md" type="date" value="'+td+'" max="'+td+'"><input id="mh" type="number" min="0" max="24" placeholder="Hours" style="width:90px"><input id="mi" type="number" min="0" max="59" placeholder="Minutes" style="width:90px"></div><div class="row"><select id="mt"><option value="">No specific topic</option>'+opt+'</select></div><div class="row"><input id="mdesc" placeholder="Description (optional)" style="flex:1"><button onclick="addman()">Add session</button></div></details>'+
+'<details><summary>All sessions ('+S.sessions.length+')</summary><table><tr><th>Date<th>Topic<th>Study<th>Type<th>Note<th></tr>'+Q(hist,x=>'<tr><td>'+x.date+'<td>'+esc(stitle(x))+'<td>'+fd(x.study)+'<td>'+smode(x)+'<td>'+esc(x.desc)+'<td><button class="s" onclick="eds('+x.id+')">Edit</button> <button class="d" onclick="dls('+x.id+')">Delete</button></tr>')+'</table></details>'},
 syll(){const q=(window.sq||'').toLowerCase();let o='<h2>Syllabus tracker</h2><div class="row"><input id="sq" placeholder="Search topics & notes" value="'+esc(window.sq||'')+'" oninput="sq=this.value;R2()"><select onchange="sf=this.value;R2()"><option value="">All statuses</option>'+Q(ST,s=>'<option'+(window.sf==s?' selected':'')+'>'+s+'</option>')+'</select><button class="s" onclick="addc()">+ Add custom topic</button></div><div id="sl">'+sl()+'</div>';return o},
 rev(){const rs=revStats(),row=x=>'<div class="tp"><span>'+esc(x.name)+' · R'+x.n+' · '+x.due+'</span><button onclick="rdn('+x.id+')">Mark done</button></div>';const done=S.revs.filter(x=>x.done);
 return'<h2>Revision</h2><p>Spaced schedule: 1, 3, 7, 15, 30 days. Completing a topic creates its first revision automatically.</p><h3>Overdue ('+rs.over.length+')</h3>'+Q(rs.over,row)+'<h3>Due today ('+rs.due.length+')</h3>'+Q(rs.due,row)+'<h3>Upcoming ('+rs.up.length+')</h3>'+Q(rs.up,row)+'<h3>Completed ('+done.length+')</h3>'+Q(done.slice(-15),x=>'<div>'+esc(x.name)+' · R'+x.n+'</div>')},
@@ -70,7 +90,7 @@ return'<h2>Settings</h2>'+
 g('👤','Profiles','Each profile keeps its own sessions, syllabus, revisions, backlog, mocks and settings.',f('Active profile','<b>'+esc(activeName())+'</b>')+'<div class="row"><button onclick="addProfile()">Add profile</button><button class="s" onclick="renameProfile()">Rename</button><button class="d" onclick="deleteProfile()">Delete</button></div>')+
 g('🎯','Study plan','Targets used by the dashboard, streak and consistency.',f('Daily target (hours)',n('daily',.5,24,.5))+f('Minimum hours for a streak day',n('min',0,24,.5))+f('Weekly target (hours)',n('weekly',1,168,1)))+
 g('📅','Examination','Exam dates and which exam the dashboard counts down to.',f('Prelims date','<input type="date" value="'+s.exam+'" onchange="setd(\'exam\',this.value)">')+f('Mains date (optional)','<input type="date" value="'+s.mains+'" onchange="setd(\'mains\',this.value)">')+f('Countdown shows','<select onchange="setcd(this.value)"><option value="prelims"'+(s.cd=='prelims'?' selected':'')+'>Prelims</option><option value="mains"'+(s.cd=='mains'?' selected':'')+'>Mains</option></select>'))+
-g('⏱','Timer','Pomodoro defaults, used by Custom Pomodoro.',f('Work (minutes)',n('pw',1,180,1))+f('Short break (minutes)',n('pb',1,60,1))+f('Long break (minutes)',n('lb',1,90,1))+f('Sessions before a long break',n('cyc',1,10,1))+f('Start breaks automatically','<input type="checkbox" style="width:auto"'+(s.autob?' checked':'')+' onchange="setauto(this.checked)">'))+
+g('⏱','Timer','Defaults for Pomodoro mode. You can adjust them for a single session on the Timer screen.',f('Work (minutes)',n('pw',1,180,1))+f('Short break (minutes)',n('pb',1,60,1))+f('Long break (minutes)',n('lb',1,90,1))+f('Sessions before a long break',n('cyc',1,10,1))+f('Start breaks automatically','<input type="checkbox" style="width:auto"'+(s.autob?' checked':'')+' onchange="setauto(this.checked)">'))+
 g('📈','Readiness score','An internal progress indicator, not a prediction. Weights must total exactly 100%.',Q(NM,(x,i)=>f(x+' (now '+r.c[i].toFixed(0)+'%)','<input type="number" min="0" max="100" step="1" value="'+s.w[i]+'" oninput="wIn('+i+',this.value)">'))+'<div class="row">Total: <b id="wt"'+(tot==100?'':' style="color:var(--w)"')+'>'+tot+'%</b><button id="wsave" onclick="saveW()"'+(tot==100?'':' disabled')+'>Save weights</button><button class="s" onclick="resetW()">Reset</button></div><p>Score now: <b>'+r.score.toFixed(0)+'/100</b></p>'+rec(r))+
 g('🎨','Appearance','Theme, accent colour and text size for this profile.','<div class="row">'+sw(!S.dark,['Light','setdark(0)'])+sw(S.dark,['Dark','setdark(1)'])+'</div><div class="row">'+Q(Object.keys(PAL),k=>'<button title="'+PAL[k].n+'" aria-label="'+PAL[k].n+'" onclick="setf(\'accent\',\''+k+'\')" style="background:'+(S.dark?PAL[k].d:PAL[k].l)+';width:34px;height:34px;border-radius:50%;padding:0;'+(s.accent==k?'outline:3px solid var(--t)':'')+'"></button>')+'</div><div class="row">'+Q(['sm','md','lg'],k=>sw(s.fs==k,[{sm:'Small',md:'Medium',lg:'Large'}[k],'setf(\'fs\',\''+k+'\')']))+'</div>')+
 g('🤝','Sharing','Choose what you would be willing to share. Used by the shared progress feature in a later update. Nothing is shared now.',Q([['weekly','Weekly study hours'],['consistency','Study consistency'],['syllabus','Syllabus completion'],['revision','Revision completion']],x=>f(x[1],'<input type="checkbox" style="width:auto"'+(s.share[x[0]]?' checked':'')+' onchange="setsh(\''+x[0]+'\',this.checked)">')))+
@@ -86,15 +106,7 @@ function addc(){const p=prompt('Paper (e.g. Mains · Optional Paper I)','Mains �
 function rdn(rid){const r=S.revs.find(x=>x.rid==rid);r.done=today();const d=T(r.id);d.rev=r.n;if(r.n<5){S.revs.push({id:r.id,rid:Date.now()+Math.random(),name:r.name,n:r.n+1,due:add(today(),IV[r.n])})}save();R()}
 function dist(){const cap=Math.max(1,Math.floor(S.set.daily/2)),t=today(),per={};ALL.filter(x=>{const d=T(x.id);return d.target&&d.target<=t&&!DONE(d.st)}).forEach(x=>{let k=1;while((per[add(t,k)]||0)>=cap)k++;const dt=add(t,k);per[dt]=(per[dt]||0)+1;T(x.id).target=dt});save();R();}
 function addm(){const s=+$('#ms').value,mx=+$('#mx').value;if(!(mx>0)||isNaN(s)||s<0||s>mx)return alert('Enter valid marks and maximum');S.mocks.push({d:today(),k:$('#mk').value,n:$('#mn').value||'Test',s,max:mx,w:$('#mw').value});save();R()}
-let iv;function tick(){clearInterval(iv);const m=S.timer;if(!m){$('#tv').textContent='00:00:00';return}const u=()=>{const e=m.acc+(m.run?Date.now()-m.t0:0),p=sp(m,e),x=Math.floor(p.s/1e3),z=n=>String(n).padStart(2,'0');$('#tv').textContent=z(x/3600|0)+':'+z(x/60%60|0)+':'+z(x%60);$('#ph').textContent=(m.run?'Running':'Paused')+(m.w?' · '+(p.br?'Break':'Focus')+' · break total '+Math.round(p.b/6e4)+'m':'')};u();iv=setInterval(u,500)}
-function sp(m,e){if(!m.w)return{s:e,b:0,br:0};const W=m.w*6e4,C=W+m.b*6e4,f=Math.floor(e/C),r=e%C,s=f*W+Math.min(r,W);return{s,b:e-s,br:r>=W}}
-function ts(){let w=+$('#tmo').value||0,b=w==25?5:10;if($('#tmo').value=='c'){w=S.set.pw;b=S.set.pb}S.timer={acc:0,run:1,t0:Date.now(),id:$('#tt').value,desc:$('#td').value,w,b,date:today()};save();R()}
-function tp(){const m=S.timer;m.acc+=Date.now()-m.t0;m.run=0;save();R()}
-function tr(){const m=S.timer;m.t0=Date.now();m.run=1;save();R()}
-function tz(){if(confirm('Discard this session?')){S.timer=null;save();R()}}
-function tx(){const m=S.timer,e=m.acc+(m.run?Date.now()-m.t0:0),p=sp(m,e),t=ALL.find(x=>x.id==m.id);S.sessions.push({id:Date.now(),date:m.date,study:p.s,brk:p.b,tid:m.id,name:t?t.n:'',desc:m.desc});if(t){const d=T(m.id);d.hrs+=hrs(p.s);if(d.st==ST[0])d.st=ST[1]}S.timer=null;save();R()}
-function addman(){const d=$('#md').value,h=+$('#mh').value||0,mi=+$('#mi').value||0,tot=h+mi/60;if(!d||d>today())return alert('Choose today or an earlier date.');if(h<0||mi<0||tot<=0||tot>24)return alert('Enter a duration between 1 minute and 24 hours.');const id=$('#mt').value,t=ALL.find(x=>x.id==id);S.sessions.push({id:Date.now(),date:d,study:tot*36e5,brk:0,tid:t?id:'',name:t?t.n:'',desc:$('#mdesc').value,manual:1});if(t){const q=T(id);q.hrs+=tot;if(q.st==ST[0])q.st=ST[1]}save();R()}
-function dls(id){if(confirm('Delete this session?')){S.sessions=S.sessions.filter(x=>x.id!=id);save();R()}}
+function addman(){const d=$('#md').value,h=+$('#mh').value||0,mi=+$('#mi').value||0,tot=h+mi/60;if(!d||d>today())return alert('Choose today or an earlier date.');if(h<0||mi<0||tot<=0||tot>24)return alert('Enter a duration between 1 minute and 24 hours.');const id=$('#mt').value,t=ALL.find(x=>x.id==id);S.sessions.push({id:Date.now(),date:d,study:tot*36e5,brk:0,tid:t?id:'',name:t?t.n:'',unit:t?t.u:'',paper:t?t.p:'',mode:'manual',desc:$('#mdesc').value,manual:1});if(t){const q=T(id);q.hrs+=tot;if(q.st==ST[0])q.st=ST[1]}save();R()}
 function eds(id){const x=S.sessions.find(s=>s.id==id),h=prompt('Study hours',hrs(x.study).toFixed(2));if(h===null||isNaN(+h))return;const o=x.study;x.study=+h*36e5;x.desc=prompt('Description',x.desc)??x.desc;if(x.tid)T(x.tid).hrs=Math.max(0,T(x.tid).hrs+hrs(x.study-o));save();R()}
 function dl(n,t,ty){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()}
 
@@ -121,7 +133,7 @@ for(const id in o.topics){const t=o.topics[id];if(!t||typeof t!='object'){delete
  if(t.st=='Revision Required')t._needrev=1;t.st=MAP[t.st]||(ST.includes(t.st)?t.st:ST[0]);t.hrs=Math.max(0,+t.hrs||0);t.rev=Math.max(0,Math.min(5,+t.rev||0));
  ['notes','ref','target','done'].forEach(k=>t[k]=t[k]==null?'':String(t[k]))}
 o.hist=d.hist&&typeof d.hist=='object'&&!Array.isArray(d.hist)?d.hist:{};
-o.timer=(d.timer&&typeof d.timer=='object'&&Number.isFinite(+d.timer.acc)&&Number.isFinite(+d.timer.t0))?d.timer:null;o.dark=d.dark?1:0;
+o.timer=normTimer(d.timer);o.tsel=d.tsel&&typeof d.tsel=='object'&&!Array.isArray(d.tsel)?d.tsel:{};o.dark=d.dark?1:0;
 return{state:o,dropped:drop}}
 function fixRevs(){let ch=0;for(const id in S.topics){const t=S.topics[id];if(!t._needrev)continue;delete t._needrev;const a=ALL.find(x=>x.id==id);if(a&&!S.revs.some(r=>r.id==id&&!r.done)){S.revs.push({id,rid:Date.now()+Math.random(),name:a.n,n:Math.min(5,t.rev+1),due:today()});ch=1}}return ch}
 function conflict(cur){S=normalize(cur).state;S._rev=cur._rev||0;buildAll();fixRevs();R();toast('Your data was changed in another window. This screen was refreshed and your last change was not saved. Please repeat it.')}
@@ -133,7 +145,7 @@ if(!META){const old=await idbGet('s');if(old)await idbPut('s_backup_v1',old);con
 PK='p:'+META.active;const raw=await idbGet(PK)||{};const n=normalize(raw);S=n.state;S._rev=raw._rev||1;buildAll();const fx=fixRevs();
 if(fx||n.dropped||raw._v!==2)save();
 try{bc=new BroadcastChannel('upsc27');bc.onmessage=async e=>{if(!e.data||e.data.k!==PK||e.data.rev===S._rev)return;const cur=await idbGet(PK);if(!cur)return;S=normalize(cur).state;S._rev=cur._rev||0;buildAll();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))R()}}catch(e){}
-R();setInterval(()=>{if(view=='dash')R()},6e4);if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})}
+R();tickAll();setInterval(tickAll,500);setInterval(()=>{if(view=='dash')R()},6e4);if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})}
 async function wipe(){await idbPut(PK+'_prev',clone(S));const r=S._rev;S=normalize({}).state;S._rev=r;buildAll();save();R();toast('All data erased. Use "Undo last restore / erase" in Settings to bring it back.')}
 async function undoRestore(){const prev=await idbGet(PK+'_prev');if(!prev)return alert('Nothing to undo.');if(!confirm('Bring back the data from before the last restore or erase? Current data will be replaced.'))return;await idbPut(PK+'_prev',clone(S));const r=S._rev;S=normalize(prev).state;S._rev=r;buildAll();fixRevs();save();R()}
 function bk(){dl('upsc-backup-'+activeName().replace(/[^\w-]+/g,'_')+'-'+today()+'.json',JSON.stringify({_format:'upsc-backup',_v:2,profile:activeName(),exported:new Date().toISOString(),state:S}),'application/json')}
@@ -173,4 +185,52 @@ function setsh(k,c){if(k in S.set.share){S.set.share[k]=c?1:0;save()}}
 function wIn(i,v){WD[i]=Math.max(0,Math.min(100,Math.round(+v||0)));const t=WD.reduce((a,b)=>a+b,0),e=$('#wt');if(e){e.textContent=t+'%';e.style.color=t==100?'':'var(--w)'}const b=$('#wsave');if(b)b.disabled=t!=100}
 function saveW(){const t=WD.reduce((a,b)=>a+b,0);if(t!=100)return toast('Weights must total exactly 100% (now '+t+'%).');S.set.w=WD.slice();save();R();toast('Readiness weights saved.')}
 function resetW(){S.set.w=DEF().set.w.slice();save();R()}
+
+/* ---------- Phase 2: timestamp-based timer ---------- */
+const MODES={sw:'Stopwatch',cd:'Countdown',pomo:'Pomodoro'};let TR='7';
+const z2=n=>String(n).padStart(2,'0'),hms=s=>z2(s/3600|0)+':'+z2(s/60%60|0)+':'+z2(s%60),msq=s=>z2(s/60|0)+':'+z2(s%60),fmt=s=>s>=3600?hms(s):msq(s);
+const fd=ms=>{if(ms<6e4)return Math.round(ms/1e3)+'s';const m=Math.round(ms/6e4);return m>=60?Math.floor(m/60)+'h '+z2(m%60)+'m':m+'m'};
+const pv=k=>S.tsel[k]??({w:S.set.pw,sb:S.set.pb,lb:S.set.lb,cyc:S.set.cyc})[k];
+const idleT=q=>q.mode=='sw'?'00:00:00':fmt((q.mode=='cd'?(q.cd||60):pv('w'))*60);
+const stitle=x=>x.name||x.unit||(ALL.find(a=>a.id==x.tid)||{}).u||'General study',smode=x=>x.manual?'Manual':(MODES[x.mode]||'Stopwatch');
+const sesCard=x=>'<div class="sc"><div><b>'+esc(stitle(x))+'</b><br><small>'+esc([x.paper,x.unit].filter(Boolean).join(' › ')||'General')+' · '+smode(x)+'</small>'+(x.desc?'<br><small><i>'+esc(x.desc)+'</i></small>':'')+'</div><div class="sd"><b>'+fd(x.study)+'</b><br><button class="s" onclick="eds('+x.id+')">Edit</button> <button class="d" onclick="dls('+x.id+')">Delete</button></div></div>';
+function normTimer(t){if(!t||typeof t!='object')return null;const F=x=>x!==null&&x!==''&&Number.isFinite(+x);
+ if(t.sid&&MODES[t.mode]){if(!(F(t.t0)&&F(t.pacc)&&F(t.plen)&&F(t.study)&&F(t.brk)&&F(t.n)&&t.cfg&&F(t.cfg.w)&&F(t.cfg.sb)&&F(t.cfg.lb)&&F(t.cfg.cyc)&&Array.isArray(t.ivs)))return null;t.ivs=t.ivs.filter(v=>Array.isArray(v)&&F(v[0])&&F(v[1])&&(v[2]=='w'||v[2]=='b'));return t}
+ if(F(t.acc)&&F(t.t0)){const now=Date.now(),e=(+t.acc)+(t.run?now-t.t0:0);let s=e,b=0;if(+t.w){const W=t.w*6e4,C=W+(+t.b||5)*6e4,f=Math.floor(e/C),r=e%C;s=f*W+Math.min(r,W);b=e-s}
+  const d=/^\d{4}-\d\d-\d\d$/.test(t.date)?t.date:ymd(now),a=new Date(d+'T12:00').getTime();
+  return{sid:+t.t0,mode:'sw',id:String(t.id||''),unit:'',paper:'',desc:String(t.desc||''),date:d,ph:'work',plen:0,run:t.run?1:0,t0:now,pacc:0,study:s,brk:b,n:0,wait:0,cfg:{w:25,sb:5,lb:15,cyc:4,auto:1},ivs:[[a,a+s,'w'],[a+s,a+s+b,'b']]}}
+ return null}
+function tsFix(){const q=S.tsel&&typeof S.tsel=='object'?S.tsel:(S.tsel={});if(!MODES[q.mode])q.mode='sw';if(q.cat!='Prelims'&&q.cat!='Mains')q.cat='';if(q.paper&&(!SY[q.paper]||(q.cat&&!q.paper.startsWith(q.cat))))q.paper='';if(!q.paper)q.unit='';if(q.unit&&!(q.unit in SY[q.paper]))q.unit='';if(!q.unit)q.tid='';if(q.tid&&!ALL.some(x=>x.id==q.tid&&x.p==q.paper&&x.u==q.unit))q.tid='';return q}
+function tmode(m){const q=tsFix(),d=$('#td');if(d)q.desc=d.value;if(MODES[m])q.mode=m;save();R()}
+function tpick(l,v){const q=tsFix(),d=$('#td');if(d)q.desc=d.value;const o=['cat','paper','unit','tid'],i=o.indexOf(l);if(i<0)return;q[l]=v;if(l=='paper'&&v)q.cat=v.split(' · ')[0];o.slice(i+1).forEach(k=>{if(!(l=='paper'&&k=='cat'))q[k]=''});save();R()}
+function tset(k,v){const L={cd:[1,600],w:[1,180],sb:[1,60],lb:[1,90],cyc:[1,10]}[k],n=v===''?NaN:+v;if(!L||!Number.isInteger(n)||n<L[0]||n>L[1]){toast('Enter a whole number between '+(L?L[0]+' and '+L[1]:'the allowed range')+'.');return R()}S.tsel[k]=n;save();R()}
+function tpre(w,sb){S.tsel.w=w;S.tsel.sb=sb;save();R()}
+function setTR(v){TR=v;R()}
+function adv(t,now){let ch=0,g=0;while(t.run&&t.plen>0&&g++<1000){const pe=t.pacc+now-t.t0;if(pe<t.plen)break;const b=t.t0+t.plen-t.pacc,k=t.ph=='work'?'w':'b';t.ivs.push([t.t0,b,k]);ch=1;
+  if(t.ph=='work'){t.study+=t.plen;t.n++}else t.brk+=t.plen;
+  if(t.mode=='cd'){t.run=0;t.done=1;t.pacc=t.plen;break}
+  const nx=t.ph=='work'?'break':'work';t.ph=nx;if(nx=='break'){t.bt=t.n%t.cfg.cyc==0?'l':'s';t.plen=(t.bt=='l'?t.cfg.lb:t.cfg.sb)*6e4}else t.plen=t.cfg.w*6e4;t.pacc=0;t.t0=b;if(!t.cfg.auto){t.run=0;t.wait=1;break}}
+ return ch}
+function tview(t,now){const pe=t.pacc+(t.run?now-t.t0:0),pl=t.plen;return{pe,study:t.study+(t.ph=='work'?pe:0),brk:t.brk+(t.ph=='break'?pe:0),prog:pl>0?Math.min(1,pe/pl):(pe%36e5)/36e5,main:pl>0?Math.max(0,pl-pe):pe}}
+function paint(){const t=S.timer;if(!t||!$('#tv'))return;const v=tview(t,Date.now()),s=Math.floor(v.main/1e3);$('#tv').textContent=(t.mode=='sw')?hms(s):fmt(s);$('#rg').style.strokeDashoffset=603.2*(1-v.prog);
+ $('.ringw').classList.toggle('brk',t.ph=='break');$('#tl').textContent=(t.wait?'Waiting · ':!t.run?'Paused · ':'')+(t.ph=='break'?(t.bt=='l'?'Long break':'Short break'):t.mode=='pomo'?'Focus '+(t.n%t.cfg.cyc+1)+' of '+t.cfg.cyc:t.mode=='cd'?'Countdown':'Studying');
+ const i=$('#ti');if(i)i.textContent='Study '+fd(v.study)+' · Break '+fd(v.brk);document.title=(t.run?$('#tv').textContent+' · ':'')+'UPSC 2027 Tracker'}
+function beep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(a.currentTime+.35);navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+function tickAll(){const t=S&&S.timer;if(!t)return;if(adv(t,Date.now())){beep();save();if(t.mode=='cd'){tx(true);return}toast(t.wait?(t.ph=='break'?'Focus block complete. Start your break when ready.':'Break over. Start your next focus block when ready.'):(t.ph=='break'?'Break time.':'Back to focus.'));if(view=='timer')R();return}if(view=='timer')paint()}
+function ts(){if(S.timer)return;const q=tsFix(),d=$('#td');if(d)q.desc=d.value;const now=Date.now(),m=q.mode,w=pv('w'),cd=+q.cd||60;
+ S.timer={sid:now,mode:m,id:q.tid||'',unit:q.unit||'',paper:q.paper||'',desc:String(q.desc||''),date:today(),ph:'work',plen:m=='sw'?0:(m=='cd'?cd:w)*6e4,run:1,t0:now,pacc:0,study:0,brk:0,n:0,wait:0,cfg:{w,sb:pv('sb'),lb:pv('lb'),cyc:pv('cyc'),auto:S.set.autob?1:0},ivs:[]};save();R()}
+function tp(){const t=S.timer,now=Date.now();if(!t)return;adv(t,now);if(t.run){t.ivs.push([t.t0,now,t.ph=='work'?'w':'b']);t.pacc+=now-t.t0;t.run=0}save();R()}
+function tr(){const t=S.timer;if(!t||t.run)return;t.run=1;t.wait=0;t.t0=Date.now();save();R()}
+function tz(){if(S.timer&&confirm('Discard this running session without saving it?')){S.timer=null;save();R()}}
+function splitDays(ivs){const m={};for(const[a,e,k]of ivs){let s=a;while(s<e){const d=new Date(s),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),g=Math.min(e,nx),key=ymd(s),o=m[key]||(m[key]={w:0,b:0});o[k]+=g-s;s=g}}return m}
+function tx(auto){const t=S.timer;if(!t)return;const now=Date.now();adv(t,now);const iv=t.ivs.slice();if(t.run)iv.push([t.t0,now,t.ph=='work'?'w':'b']);
+ const m=splitDays(iv),days=Object.keys(m).sort(),tot=days.reduce((a,d)=>a+m[d].w,0);S.timer=null;
+ if(S.sessions.some(x=>x.sid==t.sid)){save();R();return}
+ if(tot<1e4){save();R();return toast('Sessions shorter than 10 seconds are not saved.')}
+ const a=ALL.find(x=>x.id==t.id);days.forEach((d,i)=>{if(m[d].w<1)return;S.sessions.push({id:t.sid+i,sid:t.sid,date:d,study:m[d].w,brk:m[d].b,tid:a?a.id:'',name:a?a.n:'',unit:a?a.u:t.unit||'',paper:a?a.p:t.paper||'',mode:t.mode,desc:t.desc||''})});
+ if(a){const q=T(a.id);q.hrs+=tot/36e5;if(q.st==ST[0])q.st=ST[1]}
+ save();R();toast((auto?'Countdown complete. ':'')+'Session saved: '+fd(tot)+'.')}
+function dls(id){const x=S.sessions.find(s=>s.id==id);if(!x||!confirm('Delete this session?'))return;S.sessions=S.sessions.filter(s=>s.id!=id);if(x.tid)T(x.tid).hrs=Math.max(0,T(x.tid).hrs-hrs(x.study));save();R()}
+window.addEventListener('beforeunload',e=>{if(S&&S.timer&&S.timer.run){e.preventDefault();e.returnValue=''}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tickAll()});
 boot();
