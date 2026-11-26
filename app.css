@@ -60,3 +60,5 @@ a{color:var(--a)}.tabs5 button{padding:7px 1px;font-size:11.5px;white-space:nowr
 .wl{border:0;border-bottom:1px dashed var(--b);border-radius:0;margin:0;padding:4px 0;background:none}.wl>summary{display:grid;grid-template-columns:78px 1fr auto;gap:8px;align-items:center;font-weight:400;font-size:13px;list-style:none}
 .wl>summary::-webkit-details-marker{display:none}.wb{display:flex;height:10px;background:var(--b);border-radius:5px;overflow:hidden}.we{display:block;background:var(--m);opacity:.55}.wp{display:block;background:var(--a)}.wov>summary>span:last-child{color:#c53030;font-weight:600}.dk .wov>summary>span:last-child{color:#f56565}
 .rva button:disabled{opacity:.6}
+
+.lc{width:100%;height:auto;max-height:190px;display:block}.ln{fill:none;stroke:var(--a);stroke-width:2;stroke-linejoin:round}.dt{fill:var(--a)}.ax{stroke:var(--b)}.at{fill:var(--m);font-size:9px}
