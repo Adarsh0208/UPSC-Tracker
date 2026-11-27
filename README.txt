@@ -18,3 +18,6 @@ Upload ALL files in this folder to GitHub, as before.
 
 v11 (Phase 6): Tests and answer writing: Prelims (negative marking, subject-wise accuracy), Mains answers, Essays, trend charts, suggestions, edit/delete.
 Upload ALL files in this folder to GitHub, as before.
+
+v12 (Phase 7): New dashboard: greeting, countdown, today ring, stat tiles, weekly chart, syllabus ring, daily goals (Settings > Daily goals), Continue studying, recent sessions, daily quote, shared progress (Settings > Sharing).
+Upload ALL files in this folder to GitHub, as before.
