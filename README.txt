@@ -1,23 +1,19 @@
-UPSC 2027 Tracker (offline PWA)
-WINDOWS: install Python (python.org) once, double-click start-windows.bat, open the page in Chrome/Edge, click the install icon in the address bar. After install it runs offline without the batch file.
-ANDROID: upload this folder to any free static host (Netlify Drop, GitHub Pages), open the https link in Chrome, menu > Install app. Works offline afterwards.
-BACKUP: Settings > Backup (JSON) saves a file; Settings > Restore loads it. Back up weekly; browser data lives only on that device.
-Prelims date defaults to 24 May 2027; verify on upsc.gov.in and change in Settings.
+UPSC 2027 Tracker (offline PWA), version 13
 
-v5 (Phase 0 foundation): files are now index.html + app.css + app.js (+ sw.js, manifest.json, icons). Upload ALL of them to GitHub.
-Your existing data is migrated automatically on first open; the old record is kept untouched in the browser as a safety copy.
+FILES (upload ALL of these to the root of your GitHub repository):
+  index.html, app.css, app.js, sw.js, manifest.json, icon-192.png, icon-512.png
+  (start-windows.bat and this README are optional)
 
-v7 (Phase 2): new Study Timer (stopwatch, countdown, Pomodoro with long breaks), topic picker, per-subject time analytics.
-Upload ALL files in this folder to GitHub, as before.
+DEPLOY ON GITHUB PAGES
+  1. Repository > Add file > Upload files > drag in the files above (the files, not the folder) > Commit changes.
+  2. Wait for the green tick under Actions, then open https://<username>.github.io/<repository>/ with internet on.
+  3. If an installed copy still looks old, close it completely and reopen it once.
 
-v8 (Phase 3): Syllabus tracker: per-paper progress, priority, estimated hours, topic detail page, filters, custom topics (add/edit/delete).
-Upload ALL files in this folder to GitHub, as before.
+INSTALL
+  Android: Chrome > menu > Install app.  Windows: Chrome or Edge > install icon in the address bar.
 
-v9 (Phase 4): Revision manager: tabs, monthly calendar, postpone/reschedule/difficult, configurable intervals (Settings > Revision schedule).
-Upload ALL files in this folder to GitHub, as before.
+DATA
+  Everything is stored in this browser on this device. Settings > Backup (JSON) regularly; Restore on a new device.
+  Each profile has its own data. Share progress with a partner using snapshot files (Dashboard > Shared progress).
 
-v11 (Phase 6): Tests and answer writing: Prelims (negative marking, subject-wise accuracy), Mains answers, Essays, trend charts, suggestions, edit/delete.
-Upload ALL files in this folder to GitHub, as before.
-
-v12 (Phase 7): New dashboard: greeting, countdown, today ring, stat tiles, weekly chart, syllabus ring, daily goals (Settings > Daily goals), Continue studying, recent sessions, daily quote, shared progress (Settings > Sharing).
-Upload ALL files in this folder to GitHub, as before.
+TESTS (optional, developers): dev-tests/phase0.py .. phase8.py use Python + Playwright against a local web server.
