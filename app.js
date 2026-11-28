@@ -62,7 +62,7 @@ const td=today(),tl=S.sessions.filter(x=>x.date==td).sort((a,b)=>b.id-a.id),tt=t
 ra=S.sessions.filter(x=>TR=='all'||x.date>=add(td,-(+TR-1))),m={};ra.forEach(x=>{const u=x.unit||(ALL.find(a=>a.id==x.tid)||{}).u||'General study';m[u]=(m[u]||0)+x.study});
 const rows=Object.entries(m).sort((a,b)=>b[1]-a[1]),sum=rows.reduce((a,r)=>a+r[1],0),mx=rows.length?rows[0][1]:1;
 const hist=S.sessions.slice().sort((a,b)=>b.id-a.id).slice(0,100);
-return'<h2>Study timer</h2>'+card+asCard()+
+return asCard()+'<h2>Study timer</h2>'+card+
 '<h3>Today: '+fd(tt)+' of '+S.set.daily+'h target</h3>'+(tl.length?Q(tl,sesCard):'<p style="color:var(--m)">No sessions recorded today yet.</p>')+
 '<h3>Time by subject</h3><div class="seg" style="margin-bottom:8px">'+Q([['1','Today'],['7','7 days'],['30','30 days'],['all','All']],r=>'<button class="'+(TR==r[0]?'on':'')+'" onclick="setTR(\''+r[0]+'\')">'+r[1]+'</button>')+'</div>'+
 (rows.length?Q(rows,r=>'<div class="ar"><span>'+esc(r[0])+'</span><div class="p"><i style="width:'+(100*r[1]/mx)+'%"></i></div><small>'+fd(r[1])+' · '+(100*r[1]/sum).toFixed(0)+'%</small></div>'):'<p style="color:var(--m)">No study time recorded in this period.</p>')+

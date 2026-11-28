@@ -17,3 +17,5 @@ DATA
   Each profile has its own data. Share progress with a partner using snapshot files (Dashboard > Shared progress).
 
 TESTS (optional, developers): dev-tests/phase0.py .. phase8.py use Python + Playwright against a local web server.
+
+v15: On the Timer page the "Add Study Session" card is now at the top, above the timer.
